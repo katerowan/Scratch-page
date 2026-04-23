@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anagram Scramble</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;1,9..144,300&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f2ec;
+    --surface: #ffffff;
+    --border: #d8d2c7;
+    --text: #1a1814;
+    --muted: #7a756d;
+    --accent: #2d6a3f;
+    --accent-light: #e8f3ec;
+    --danger: #922b21;
+    --danger-light: #fdf0ef;
+    --slot-empty: #ede9e2;
+  }
+
+  body {
+    font-family: 'DM Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem 4rem;
+  }
+
+  header {
+    width: 100%;
+    max-width: 520px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 2.5rem;
+  }
+
+  .logo {
+    font-family: 'Fraunces', serif;
+    font-size: 28px;
+    font-weight: 300;
+    font-style: italic;
+    letter-spacing: -0.5px;
+    color: var(--text);
+  }
+
+  .logo span { color: var(--accent); }
+
+  .stats { display: flex; gap: 20px; }
+
+  .stat { text-align: right; }
+
+  .stat-val {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--text);
+    display: block;
+    line-height: 1;
+  }
+
+  .stat-lbl {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 520px;
+  }
+
+  .clue {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 300;
+    font-style: italic;
+    color: var(--muted);
+    text-align: center;
+    margin-bottom: 2rem;
+    line-height: 1.4;
+    min-height: 28px;
+  }
+
+  .letter-row {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+
+  .tile {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 500;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: background 0.12s, border-color 0.12s, transform 0.08s, opacity 0.12s;
+    user-select: none;
+    color: var(--text);
+  }
+
+  .tile:hover { background: var(--slot-empty); border-color: #b8b2a7; transform: translateY(-2px); }
+  .tile:active { transform: translateY(0); }
+  .tile.used { opacity: 0.2; cursor: default; pointer-events: none; }
+
+  .answer-row {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+    min-height: 56px;
+  }
+
+  .slot {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    border: 1.5px dashed var(--border);
+    background: var(--slot-empty);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 500;
+    text-transform: uppercase;
+    color: var(--text);
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s, transform 0.12s;
+    user-select: none;
+  }
+
+  .slot.filled { border-style: solid; border-color: var(--border); background: var(--surface); }
+  .slot.filled:hover { background: var(--slot-empty); transform: translateY(-2px); }
+  .slot.correct { background: var(--accent-light); border-color: var(--accent); border-style: solid; color: var(--accent); }
+  .slot.wrong { background: var(--danger-light); border-color: var(--danger); border-style: solid; color: var(--danger); }
+
+  .msg {
+    text-align: center;
+    font-size: 13px;
+    min-height: 18px;
+    margin-bottom: 1.25rem;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+  }
+
+  .msg.good { color: var(--accent); }
+  .msg.bad { color: var(--danger); }
+
+  .actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+
+  button {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 8px 20px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    transition: background 0.1s, transform 0.08s;
+  }
+
+  button:hover { background: var(--slot-empty); }
+  button:active { transform: scale(0.97); }
+  button.primary { background: var(--text); color: var(--bg); border-color: var(--text); }
+  button.primary:hover { background: #333; }
+
+  .progress {
+    text-align: center;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 1.5rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .progress-bar {
+    width: 100%;
+    max-width: 520px;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-top: 0.5rem;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+</style>
+</head>
+<body>
+    <!-- Navigation-->
+        <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
+            <div class="container px-4 px-lg-5">
+                <a class="navbar-brand" href="index.html">Kate Rowan</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                    Menu
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarResponsive">
+                    <ul class="navbar-nav ms-auto py-4 py-lg-0">
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="index.html">Home</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="about.html">Resume</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="fromScratch.html">WBB</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="contact.html">Game</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+<header>
+  <div class="logo">ana<span>gram</span></div>
+  <div class="stats">
+    <div class="stat">
+      <span class="stat-val" id="ag-score">0</span>
+      <span class="stat-lbl">score</span>
+    </div>
+    <div class="stat">
+      <span class="stat-val" id="ag-streak">0</span>
+      <span class="stat-lbl">streak</span>
+    </div>
+  </div>
+</header>
+
+<div class="card">
+  <div class="clue" id="ag-clue"></div>
+  <div class="letter-row" id="ag-scramble"></div>
+  <div class="answer-row" id="ag-answer"></div>
+  <div class="msg" id="ag-msg"></div>
+  <div class="actions">
+    <button id="btn-clear">Clear</button>
+    <button id="btn-shuffle">Shuffle</button>
+    <button id="btn-skip">Skip</button>
+    <button class="primary" id="btn-check">Check</button>
+  </div>
+</div>
+
+<div class="progress" id="ag-progress">word 1 of 20</div>
+<div class="progress-bar"><div class="progress-fill" id="ag-bar" style="width:0%"></div></div>
+
+<script>
+const WORDS = [
+  { word: 'PLANET', clue: 'Orbits a star' },
+  { word: 'BRIDGE', clue: 'Spans a river' },
+  { word: 'GARDEN', clue: 'Grow flowers here' },
+  { word: 'MIRROR', clue: 'Reflects your face' },
+  { word: 'CANDLE', clue: 'Flickering light source' },
+  { word: 'JUNGLE', clue: 'Dense tropical forest' },
+  { word: 'CASTLE', clue: 'Medieval fortress' },
+  { word: 'FROZEN', clue: 'Below zero' },
+  { word: 'BRANCH', clue: 'Part of a tree' },
+  { word: 'SILVER', clue: 'Shiny precious metal' },
+  { word: 'TALENT', clue: 'Natural skill or gift' },
+  { word: 'GRAVEL', clue: 'Tiny stones on a path' },
+  { word: 'FAMINE', clue: 'Extreme food shortage' },
+  { word: 'RIDDLE', clue: 'A puzzling question' },
+  { word: 'PIRATE', clue: 'Sails the seas for loot' },
+  { word: 'WALNUT', clue: 'A wrinkled brown nut' },
+  { word: 'MAGNET', clue: 'Attracts iron' },
+  { word: 'COBALT', clue: 'A vivid blue element' },
+  { word: 'TURNIP', clue: 'Root vegetable' },
+  { word: 'FLORAL', clue: 'Relating to flowers' },
+];
+
+let queue = [], current = null, scrambled = [], placed = [], score = 0, streak = 0, wordNum = 0;
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function buildQueue() { queue = shuffle(WORDS); }
+
+function nextWord() {
+  if (!queue.length) buildQueue();
+  current = queue.pop();
+  wordNum++;
+  let sc = shuffle(current.word.split(''));
+  while (sc.join('') === current.word) sc = shuffle(current.word.split(''));
+  scrambled = sc;
+  placed = Array(current.word.length).fill(null);
+  render();
+  showMsg('');
+}
+
+function render() {
+  document.getElementById('ag-clue').textContent = current.clue;
+  document.getElementById('ag-score').textContent = score;
+  document.getElementById('ag-streak').textContent = streak;
+  document.getElementById('ag-progress').textContent = `word ${wordNum} of ${WORDS.length}`;
+  document.getElementById('ag-bar').style.width = (Math.min(wordNum, WORDS.length) / WORDS.length * 100) + '%';
+
+  const scrEl = document.getElementById('ag-scramble');
+  scrEl.innerHTML = '';
+  scrambled.forEach((l, i) => {
+    const div = document.createElement('div');
+    div.className = 'tile' + (placed.includes(i) ? ' used' : '');
+    div.textContent = l;
+    if (!placed.includes(i)) div.addEventListener('click', () => pickLetter(i));
+    scrEl.appendChild(div);
+  });
+
+  const ansEl = document.getElementById('ag-answer');
+  ansEl.innerHTML = '';
+  placed.forEach((srcIdx, slot) => {
+    const div = document.createElement('div');
+    div.className = 'slot' + (srcIdx !== null ? ' filled' : '');
+    div.textContent = srcIdx !== null ? scrambled[srcIdx] : '';
+    if (srcIdx !== null) div.addEventListener('click', () => removeLetter(slot));
+    ansEl.appendChild(div);
+  });
+}
+
+function pickLetter(idx) {
+  const slot = placed.indexOf(null);
+  if (slot === -1) return;
+  placed[slot] = idx;
+  render();
+}
+
+function removeLetter(slot) {
+  placed[slot] = null;
+  const filled = placed.filter(x => x !== null);
+  const newPlaced = Array(current.word.length).fill(null);
+  filled.forEach((v, i) => newPlaced[i] = v);
+  placed = newPlaced;
+  render();
+}
+
+function clearAnswer() { placed = Array(current.word.length).fill(null); render(); showMsg(''); }
+
+function shuffleScrambled() {
+  const freeIdxs = scrambled.map((_, i) => i).filter(i => !placed.includes(i));
+  const shuffled = shuffle(freeIdxs);
+  const newScrambled = [...scrambled];
+  freeIdxs.forEach((origIdx, i) => { newScrambled[origIdx] = scrambled[shuffled[i]]; });
+  scrambled = newScrambled;
+  render();
+}
+
+function checkAnswer() {
+  if (placed.includes(null)) { showMsg('Fill all the letters first!', 'bad'); return; }
+  const guess = placed.map(i => scrambled[i]).join('');
+  const slots = document.querySelectorAll('.slot');
+  if (guess === current.word) {
+    slots.forEach(s => s.classList.add('correct'));
+    score += 10 + (streak * 2);
+    streak++;
+    showMsg('Correct! +' + (10 + (streak - 1) * 2) + ' points', 'good');
+    setTimeout(nextWord, 1200);
+  } else {
+    slots.forEach(s => s.classList.add('wrong'));
+    streak = 0;
+    showMsg('Not quite — try again!', 'bad');
+    setTimeout(() => { slots.forEach(s => s.classList.remove('wrong')); render(); }, 800);
+  }
+}
+
+function showMsg(text, type) {
+  const el = document.getElementById('ag-msg');
+  el.textContent = text;
+  el.className = 'msg' + (type ? ' ' + type : '');
+}
+
+document.getElementById('btn-clear').addEventListener('click', clearAnswer);
+document.getElementById('btn-shuffle').addEventListener('click', shuffleScrambled);
+document.getElementById('btn-skip').addEventListener('click', () => { streak = 0; showMsg('Skipped — the word was ' + current.word); setTimeout(nextWord, 900); });
+document.getElementById('btn-check').addEventListener('click', checkAnswer);
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') checkAnswer();
+  if (e.key === 'Backspace') {
+    const last = placed.map((v,i) => v !== null ? i : -1).filter(i => i >= 0).pop();
+    if (last !== undefined) removeLetter(last);
+  }
+});
+
+buildQueue();
+nextWord();
+</script>
+</body>
+</html>
