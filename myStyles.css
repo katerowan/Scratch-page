@@ -1,0 +1,59 @@
+/* STYLE 1: Page background + font */
+body {
+    background-color: #f4f6fb;
+    font-family: Arial, sans-serif;
+    margin: 0;
+}
+
+/* STYLE 2: Header section */
+.header-box {
+    background-color: #002E5D;  /* BYU blue */
+    color: white;               /* font color */
+    text-align: center;
+    padding: 30px;
+}
+
+/* STYLE 3: Content sections */
+.content-box {
+    background-color: white;
+    color: #333;                /* font color */
+    margin: 20px auto;
+    padding: 20px;
+    width: 80%;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* STYLE 4: Headings */
+h2 {
+    color: #002E5D;
+    font-family: Georgia, serif;
+}
+
+/* STYLE 5: Images */
+img {
+    display: block;
+    margin: 0 auto;
+    border-radius: 8px;
+}
+
+/* STYLE 6: Video */
+iframe {
+    display: block;
+    margin: 20px auto;
+    max-width: 100%;
+}
+
+/* STYLE 7: Back to top link */
+a {
+    display: block;
+    text-align: center;
+    margin: 20px;
+    color: #002E5D;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
